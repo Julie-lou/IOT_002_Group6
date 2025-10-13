@@ -1,0 +1,6 @@
+# Smart Parking System 🚗🅿️
+
+## 📹 Demo Video
+
+🎥 Watch the full project demonstration here:  
+👉 [https://youtu.be/5ccOxIo1s2c](https://youtu.be/5ccOxIo1s2c)
