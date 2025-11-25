@@ -108,6 +108,8 @@ Grafana visualizes the data from InfluxDB.
 
 ---
 
+Link to Project Demo Video: https://youtu.be/JJG0mJq6hBU
+
 # 📌 6. Task 5 – Reliability Improvements
 
 To meet the requirement, the following were implemented:
