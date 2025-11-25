@@ -38,7 +38,7 @@ The ESP32 runs MicroPython and hosts an HTTP server to control the DC motor.
 
 ### ✔ ESP32 Web Server Output (Screenshot)
 
-![Task 1 Screenshot](images/photo_2025-11-25 09.27.14.jpeg)
+![Task 1 Screenshot](images/photo_2025-11-25_09.27.14.jpeg)
 
 The screenshot shows:
 
@@ -62,7 +62,7 @@ Each button sends an HTTP request to the ESP32.
 
 ### ✔ Mobile App Interface (Screenshot)
 
-![Task 2 Screenshot](images/photo_2025-11-25 09.27.23.jpeg)
+![Task 2 Screenshot](images/photo_2025-11-25_09.27.23.jpeg)
 
 ---
 
@@ -85,7 +85,7 @@ SELECT * FROM motor_log
 
 ### ✔ InfluxDB Shell Output (Screenshot)
 
-![Task 3 Screenshot](images/photo_2025-11-25 09.27.18.jpeg)
+![Task 3 Screenshot](images/photo_2025-11-25_09.27.18.jpeg)
 
 ---
 
@@ -101,7 +101,7 @@ Grafana visualizes the data from InfluxDB.
 
 ### ✔ Grafana Panel (Screenshot)
 
-![Task 4 Screenshot](images/photo_2025-11-25 09.27.20.jpeg)
+![Task 4 Screenshot](images/photo_2025-11-25_09.27.20.jpeg)
 
 ---
 
