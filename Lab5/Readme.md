@@ -63,6 +63,8 @@ Each button sends an HTTP request to the ESP32.
 ### ✔ Mobile App Interface (Screenshot)
 
 ![Task 2 Screenshot](images/photo_2025-11-25_09.27.23.jpeg)
+
+
 Link to Demonstration video: https://youtube.com/shorts/-v55SRtZfAU
 
 ---
