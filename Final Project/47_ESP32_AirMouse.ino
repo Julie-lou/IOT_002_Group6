@@ -28,8 +28,9 @@ const int   INFLUX_PORT   = 8086;
 const char* INFLUX_DB     = "air_mouse";
 
 // ====== TELEGRAM VIA LOCAL BRIDGE (Python on Mac) ======
-// ESP32 calls your Mac bridge at: http://<MAC_IP>:5050/telegram?msg=...
-const char* BRIDGE_HOST   = "192.168.1.101";  // 👈 your Mac's IP
+// ESP32 does NOT talk to Telegram directly now.
+// It calls your Mac bridge at http://<MAC_IP>:5050/telegram?msg=...
+const char* BRIDGE_HOST   = "192.168.0.111";  // 👈 your Mac's IP
 const int   BRIDGE_PORT   = 5050;            // 👈 same as in telegram_bridge.py
 
 // Timezone for Cambodia (UTC+7)
@@ -40,6 +41,15 @@ Adafruit_MPU6050 mpu;
 BleMouse bleMouse;
 
 bool sleepMPU = true;
+// Smoothing state
+float filteredDx = 0;
+float filteredDy = 0;
+
+// Smoothing parameters
+const float ALPHA    = 0.3;  // 0..1, smaller = smoother, but slower
+const float DEADZONE = 0.5;  // ignore tiny jitter
+const float MAX_STEP = 7.0;  // max pixels per update
+
 long mpuDelayMillis;
 
 // ========== INFLUXDB SEND ==========
@@ -149,8 +159,7 @@ void ensureWiFiConnected() {
   if (WiFi.status() == WL_CONNECTED) {
     return; // already connected
   }
-
-  Serial.println("⚠️ WiFi lost, trying to reconnect...");
+Serial.println("⚠️ WiFi lost, trying to reconnect...");
 
   WiFi.disconnect();
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -178,7 +187,7 @@ void setup() {
   pinMode(LEFTBUTTON, INPUT_PULLUP);
   pinMode(RIGHTBUTTON, INPUT_PULLUP);
 
-  // ✅ Start BLE mouse ASAP so you can pair it
+  // ✅ Start BLE mouse ASAP
   bleMouse.begin();
 
   // ====== WIFI CONNECT ======
@@ -244,12 +253,8 @@ void setup() {
 
 // ========== LOOP ==========
 void loop() {
-  ensureWiFiConnected();
+  if (bleMouse.isConnected()) {
 
-  bool connected = bleMouse.isConnected();
-
-  // ====== MOTION (only when BLE is connected) ======
-  if (connected) {
     // Wake MPU once when Bluetooth connects
     if (sleepMPU) {
       delay(3000);
@@ -262,62 +267,56 @@ void loop() {
     sensors_event_t a, g, temp;
     mpu.getEvent(&a, &g, &temp);
 
-    // Calculate mouse movement
-    float dx = g.gyro.z * -SPEED;
-    float dy = g.gyro.x * -SPEED;
+    // ----- RAW values from gyro -----
+    float rawDx = g.gyro.z * -SPEED;
+    float rawDy = g.gyro.x * -SPEED;
 
-    // Move mouse
+    // ----- Low-pass filter for smoothing -----
+    filteredDx = filteredDx + ALPHA * (rawDx - filteredDx);
+    filteredDy = filteredDy + ALPHA * (rawDy - filteredDy);
+
+    float dx = filteredDx;
+    float dy = filteredDy;
+
+    // ----- Deadzone: ignore tiny jitter -----
+    if (fabs(dx) < DEADZONE) dx = 0;
+    if (fabs(dy) < DEADZONE) dy = 0;
+
+    // ----- Clamp: avoid big sudden jumps -----
+    if (dx >  MAX_STEP) dx =  MAX_STEP;
+    if (dx < -MAX_STEP) dx = -MAX_STEP;
+    if (dy >  MAX_STEP) dy =  MAX_STEP;
+    if (dy < -MAX_STEP) dy = -MAX_STEP;
+
+    // ----- Move mouse (same as before) -----
     bleMouse.move((int8_t)dx, (int8_t)dy);
 
-    // Print motion to Serial
+    // ----- Print motion to Serial (same format) -----
     Serial.print("Motion -> dx: ");
     Serial.print(dx, 3);
     Serial.print(" , dy: ");
     Serial.println(dy, 3);
 
-    // 🔹 Optional: log motion to InfluxDB
-    String motionLine = "motion,device=esp32 dx=" + String(dx, 3) +
-                        ",dy=" + String(dy, 3);
-    // sendToInflux(motionLine);
-  }
 
-  // ====== BUTTON HANDLING (ALWAYS RUNS) ======
-  int rightState = digitalRead(RIGHTBUTTON); // LOW when pressed
-  int leftState  = digitalRead(LEFTBUTTON);
+    // 5) Move mouse (must be int8_t)
+    int8_t moveX = (int8_t)dx;
+    int8_t moveY = (int8_t)dy;
+    bleMouse.move(moveX, moveY);
 
-  // Right button
-  if (rightState == LOW) {
-    Serial.println("Right button PRESSED");
-
-    if (connected) {
-      Serial.println("Sending BLE right click");
+    // Buttons
+    if (!digitalRead(RIGHTBUTTON)) {
+      Serial.println("Right click");
       bleMouse.click(MOUSE_RIGHT);
+      delay(200);  // shorter delay so it feels more responsive
     }
 
-    String msg = "Right button clicked at " + getFormattedTime();
-    Serial.println(msg);
-    sendTelegramMessage(msg);
-    // sendToInflux("click,button=right value=1");
-
-    delay(500); // debounce
-  }
-
-  // Left button
-  if (leftState == LOW) {
-    Serial.println("Left button PRESSED");
-
-    if (connected) {
-      Serial.println("Sending BLE left click");
+    if (!digitalRead(LEFTBUTTON)) {
+      Serial.println("Left click");
       bleMouse.click(MOUSE_LEFT);
+      delay(200);
     }
 
-    String msg = "Left button clicked at " + getFormattedTime();
-    Serial.println(msg);
-    sendTelegramMessage(msg);
-    // sendToInflux("click,button=left value=1");
-
-    delay(500); // debounce
+    // 6) Update rate – smaller = smoother, but don’t go crazy
+    delay(15);   // ~60–70 updates per second
   }
-
-  delay(50);  // small pacing delay
 }
