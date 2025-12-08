@@ -19,8 +19,8 @@ https://www.youtube.com/@techtalkies1
 #define SPEED 10
 
 // ====== WIFI CONFIG ======
-const char* WIFI_SSID     = "Loulay-1";
-const char* WIFI_PASSWORD = "lLbVyEjLbH@!998";
+const char* WIFI_SSID     = "";
+const char* WIFI_PASSWORD = "";
 
 // ====== INFLUXDB CONFIG ======
 const char* INFLUX_HOST   = "192.168.0.108";  // update if needed
@@ -30,8 +30,8 @@ const char* INFLUX_DB     = "air_mouse";
 // ====== TELEGRAM VIA LOCAL BRIDGE (Python on Mac) ======
 // ESP32 does NOT talk to Telegram directly now.
 // It calls your Mac bridge at http://<MAC_IP>:5050/telegram?msg=...
-const char* BRIDGE_HOST   = "192.168.0.111";  // 👈 your Mac's IP
-const int   BRIDGE_PORT   = 5050;            // 👈 same as in telegram_bridge.py
+const char* BRIDGE_HOST   = "192.168.0.111";  // Laptop IP
+const int   BRIDGE_PORT   = 5050;            // same as in telegram_bridge.py
 
 // Timezone for Cambodia (UTC+7)
 const long GMT_OFFSET_SEC      = 7 * 3600;
