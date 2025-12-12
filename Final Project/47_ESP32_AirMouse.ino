@@ -1,12 +1,4 @@
-/* -------------------------------------------------
-IMPORTANT!
-This code works only till ESP32 core (boards) version 3.2.0.
-Downgrade if you have compilation errors.
 
-Original project:
-Arduino project by Tech Talkies YouTube Channel.
-https://www.youtube.com/@techtalkies1
--------------------------------------------------*/
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>               // for current time
@@ -29,7 +21,6 @@ const char* INFLUX_DB     = "air_mouse";
 
 // ====== TELEGRAM VIA LOCAL BRIDGE (Python on Mac) ======
 // ESP32 does NOT talk to Telegram directly now.
-// It calls your Mac bridge at http://<MAC_IP>:5050/telegram?msg=...
 const char* BRIDGE_HOST   = "192.168.0.111";  // Laptop IP
 const int   BRIDGE_PORT   = 5050;            // same as in telegram_bridge.py
 
